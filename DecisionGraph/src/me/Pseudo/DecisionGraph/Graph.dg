@@ -1,0 +1,20 @@
+
+# Define root and declare as root
+define A false Did you have breakfast?
+mkroot A
+
+# Define end points
+define B true Leave!
+define E true Make breakfast!
+
+define C Do you want breakfast?
+assert A no C
+assert A yes B
+define D false Reconsider?
+
+assert C no D
+assert C yes E
+
+assert D yes A
+assert D no B
+
