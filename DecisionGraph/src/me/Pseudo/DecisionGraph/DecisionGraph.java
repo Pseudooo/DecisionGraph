@@ -168,7 +168,7 @@ public class DecisionGraph {
 		nodes.clear();
 		br.close();
 		
-		// Not traversing so current is null
+		// Not traversing, so current is null
 		this.cur = null;
 	}
 	
