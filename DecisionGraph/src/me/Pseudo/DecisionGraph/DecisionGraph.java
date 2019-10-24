@@ -6,6 +6,11 @@ import java.io.FileNotFoundException;import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import me.Pseudo.DecisionGraph.Exceptions.FileUnreadableException;
+import me.Pseudo.DecisionGraph.Exceptions.InvalidSyntaxException;
+import me.Pseudo.DecisionGraph.Exceptions.MissingChildrenException;
+import me.Pseudo.DecisionGraph.Exceptions.NoDeclaredRootNodeException;
+
 public class DecisionGraph {
 
 	private final Node root;
@@ -15,6 +20,155 @@ public class DecisionGraph {
 	
 	private DecisionGraph(Node root) {
 		this.root = root;
+		this.cur = null;
+	}
+	
+	public DecisionGraph(File f) throws Exception, FileNotFoundException, FileUnreadableException,
+	NoDeclaredRootNodeException, MissingChildrenException {
+		
+		// File exceptions
+		if(!f.exists()) {
+			throw new FileNotFoundException();
+		}
+		if(!f.canRead()) {
+			throw new FileUnreadableException();
+		}
+		
+		// Setup items needed for constructing map
+		HashMap<String, Node> nodes = new HashMap<String, Node>();
+		String tmproot = null;
+		
+		// Read from given file
+		BufferedReader br = new BufferedReader(new FileReader(f));
+		String ln;
+		int line = 0;
+		
+		// ********** START OF FILE READING
+		while((ln = br.readLine()) != null) {
+			line++; // Increment line count
+			
+			if(ln.startsWith("#") || ln.equals("")) {
+				// Ignore comments and whitespace
+				continue;
+			}
+			
+			// Break up as command array
+			String[] cmd = ln.split(" ");
+			
+			/* cmd[0] is the command keyword of which there are three:
+			 * define, assert and mkroot. Only these three are valid
+			*/
+			if(cmd[0].equalsIgnoreCase("define")) {
+				
+				// define <node_id> <is_endpoint> <question...>
+				// Define needs atleast 3 arguments + keyword
+				if(cmd.length < 4) {
+					throw new InvalidSyntaxException("Too few arguments for define", line);
+				}
+				
+				// Check node isn't already defined
+				if(nodes.containsKey(cmd[1])) {
+					throw new InvalidSyntaxException("Node already defined", line);
+				}
+				
+				// Parse boolean
+				boolean isEndpoint = Boolean.parseBoolean(cmd[2]);
+				
+				// Parse question from remaining parameters
+				String question = "";
+				for(int i = 3; i < cmd.length; i++) {
+					//                          Handle space at end
+					question += cmd[i] + (i == cmd.length - 1 ? "" : " ");
+				}
+				
+				// Define node and place in hashmap
+				Node node = new Node(question, cmd[1], isEndpoint);
+				nodes.put(cmd[1], node);
+				
+			}else if(cmd[0].equalsIgnoreCase("assert")) {
+				
+				// assert <from_node> <Yes|No> <to_node>
+				// Assert needs exactly 3 arguments + keyword
+				if(cmd.length != 4) {
+					throw new InvalidSyntaxException("Invalid Argument Count", line);
+				}
+				
+				// Check both nodes are defined
+				if(!nodes.containsKey(cmd[1]) || !nodes.containsKey(cmd[3])) {
+					throw new InvalidSyntaxException("Node not defined", line);
+				}
+				
+				// Nodes cannot be self-referential
+				if(cmd[1].equals(cmd[3])) {
+					throw new InvalidSyntaxException("Self-Referential Nodes Are Disallowed", line);
+				}
+				
+				Node from = nodes.get(cmd[1]), to = nodes.get(cmd[3]);
+				
+				// Endpoint nodes cannot have children
+				if(from.isEndpoint()) {
+					throw new InvalidSyntaxException("Endpoint Nodes Cannot Have Children", line);
+				}
+				
+				// Potential responses are yes||no
+				if(cmd[2].equalsIgnoreCase("yes")) {
+					from.setYesNode(to);
+				}else if(cmd[2].equalsIgnoreCase("no")) {
+					from.setNoNode(to);
+				}else {
+					// Invalid response, raise syntax error
+					throw new InvalidSyntaxException("Invalid Response", line);
+				}
+				
+			}else if(cmd[0].equalsIgnoreCase("mkroot")) {
+				
+				// mkroot <node_id>
+				// Exactly 1 argument + keyword
+				if(cmd.length != 2) {
+					throw new InvalidSyntaxException("Invalid Argument Count", line);
+				}
+				
+				// Check the node is defined
+				if(!nodes.containsKey(cmd[1])) {
+					throw new InvalidSyntaxException("Node Not Defined", line);
+				}
+				
+				// Place string ID in tmproot
+				tmproot = cmd[1];
+				
+			}else {
+				// All other possibilities are invalid
+				throw new InvalidSyntaxException("Invalid Operation!", line);
+			}
+			
+		}
+		// ****** END OF FILE READING
+		
+		// Check that a root has been declared
+		if(tmproot == null) {
+			throw new NoDeclaredRootNodeException();
+		}
+		
+		// Check all non endpoint nodes have two children
+		for(Node n : nodes.values()) {
+			
+			// Skip endpoint nodes
+			if(n.isEndpoint()) continue;
+			
+			if(n.getYesNode() == null || n.getNoNode() == null) {
+				// Throw exception if children not declared
+				throw new MissingChildrenException(n.ID());
+			}
+			
+		}
+		
+		// Validation complete, now assign to this instance
+		
+		this.root = nodes.get(tmproot);
+		nodes.clear();
+		br.close();
+		
+		// Not traversing so current is null
 		this.cur = null;
 	}
 	
@@ -75,121 +229,6 @@ public class DecisionGraph {
 		}else {
 			this.cur = this.cur.getNoNode();
 		}
-	}
-	
-	/**
-	 * Read a decision graph from a file
-	 * @param file File to read
-	 * @return Decision Graph
-	 * @throws Exception IO
-	 */
-	public static DecisionGraph fromFile(File file) throws
-	Exception, FileNotFoundException {
-		
-		// Handle exceptions
-		if(!file.exists()) {
-			throw new FileNotFoundException("File not found!");		
-		}
-		
-		if(!file.canRead()) {
-			throw new Exception("Can't read file!");
-		}
-		
-		// Setup to read the file
-		BufferedReader br = new BufferedReader(new FileReader(file));
-		HashMap<String, Node> nodes = new HashMap<String, Node>();
-		String ln, root = null;
-		int lnnum = 1;
-		while((ln = br.readLine()) != null) {
-			
-			// Ignore comments and whitespace
-			if(ln.startsWith("#") || ln.equals("")) {
-				continue;
-			}
-			
-			// Setup command
-			String[] cmd = ln.split(" ");
-			
-			if(cmd[0].equalsIgnoreCase("define")) {
-				
-				// Minimum for 4 parameters
-				if(cmd.length < 4) {
-					throw new InvalidSyntaxException("Invalid Paramters!", lnnum);
-				}
-				
-				// Check node isn't defined already with ID
-				if(nodes.containsKey(cmd[1])) {
-					throw new InvalidSyntaxException("Node already defined!", lnnum);
-				}
-				
-				// Attempt to parse boolean
-				boolean isEndpoint = false;
-				try {
-					isEndpoint = Boolean.parseBoolean(cmd[2]);
-				}catch(Exception e) {
-					throw new InvalidSyntaxException("Invalid Boolean!", lnnum);
-				}
-				
-				String question = "";
-				for(int i = 3; i < cmd.length; i++) {
-					question += cmd[i] + (i == cmd.length - 1 ? "" : " ");
-				}
-				
-				Node node = new Node(question, cmd[1], isEndpoint);
-				nodes.put(cmd[1], node);
-				
-			}else if(cmd[0].equalsIgnoreCase("assert")) {
-				
-				// Assert always needs exactly 4 params
-				if(cmd.length != 4) {
-					throw new InvalidSyntaxException("Invalid Paramters!", lnnum);
-				}
-				
-				// Make sure both nodes given are defined
-				if(!nodes.containsKey(cmd[1]) || !nodes.containsKey(cmd[3])) {
-					throw new InvalidSyntaxException("Node not defined!", lnnum);
-				}
-				Node from = nodes.get(cmd[1]), to = nodes.get(cmd[3]);
-				
-				// Set the node to point to the target
-				if(cmd[2].equals("yes")) {
-					from.setYesNode(to);
-				}else if(cmd[2].equals("no")) {
-					from.setNoNode(to);
-				}else {
-					throw new InvalidSyntaxException("Invalid Response!", lnnum);
-				}
-						
-			}else if(cmd[0].equalsIgnoreCase("mkroot")) {
-				
-				if(cmd.length != 2) {
-					throw new InvalidSyntaxException("Invalid Parameters", lnnum);
-				}
-				
-				if(!nodes.containsKey(cmd[1])) {
-					throw new InvalidSyntaxException("Node not defined!", lnnum);
-				}
-				
-				root = cmd[1];
-				
-			}else {
-				// Invalid command, throw exception
-				throw new InvalidSyntaxException("Invalid Operation!", lnnum);
-			}
-			
-			// Update line counter for next iter
-			lnnum++;
-		}
-		
-		if(root == null) {
-			throw new InvalidSyntaxException("Root never declared!", 0);
-		}
-		
-		br.close();
-		DecisionGraph dg = new DecisionGraph(nodes.get(root));
-		nodes.clear();
-		return dg;
-		
 	}
 	
 }

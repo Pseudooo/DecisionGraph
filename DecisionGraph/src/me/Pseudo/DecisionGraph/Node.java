@@ -11,6 +11,7 @@ class Node {
 		this.question = question;
 		this.id = id;
 		this.isEndpoint = isEndpoint;
+		// If this is an endpoint it should have no children
 	}
 	
 	public String question() {
@@ -35,6 +36,10 @@ class Node {
 	
 	public void setNoNode(Node node) {
 		this.no = node;
+	}
+	
+	public String ID() {
+		return this.id;
 	}
 	
 	@Override

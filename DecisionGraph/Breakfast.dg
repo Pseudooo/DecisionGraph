@@ -1,0 +1,32 @@
+# Define root not and declare it as such
+define A false Did you have breakfast?
+mkroot A
+
+# Define A's children
+define B false Do you want breakfast?
+define C true Leave for uni
+
+assert A no B
+assert A yes C
+assert B no C
+
+define D false Can you afford to buy breakfast?
+assert B yes D
+
+define E false Can you make breakfast?
+assert D no E
+assert E no C
+
+define F true Make breakfast
+assert E yes F
+
+define G false Reconsider?
+assert G yes A
+assert G no C
+
+define H false Do you want to buy breakfast?
+assert D yes H
+assert H no G
+
+define I true Buy breakfast
+assert H yes I
