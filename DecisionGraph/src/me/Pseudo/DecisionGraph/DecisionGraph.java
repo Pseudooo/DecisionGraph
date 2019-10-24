@@ -18,11 +18,6 @@ public class DecisionGraph {
 	private Node cur;
 	private ArrayList<String> path = null;
 	
-	private DecisionGraph(Node root) {
-		this.root = root;
-		this.cur = null;
-	}
-	
 	public DecisionGraph(File f) throws Exception, FileNotFoundException, FileUnreadableException,
 	NoDeclaredRootNodeException, MissingChildrenException {
 		
@@ -172,6 +167,9 @@ public class DecisionGraph {
 		this.cur = null;
 	}
 	
+	/**
+	 * Setup to start traversing the graph
+	 */
 	public void startTraversing() {
 		this.cur = this.root;
 		this.path = new ArrayList<String>();
