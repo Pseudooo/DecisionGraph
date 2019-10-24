@@ -6,39 +6,36 @@ The `define` operation takes a minimum of four arguments to be syntactically cor
 ```
 define <node_id> <is_endpoint> <question...>
 ```
-`node_id`: The desired ID of the node to define, must be unique
-`is_endpoint`: boolean value to determine if the node should be an exit point
-`question`: Question/End statement just placed in raw text
+* `node_id`: The desired ID of the node to define, must be unique
+* `is_endpoint`: boolean value to determine if the node should be an exit point
+* `question`: Question/End statement just placed in raw text
 
 ### assert
 The `assert` operation takes exactly four arguments, `assert` is used to declare the relationships between already defined nodes.
 ```
 assert <from_id> <yes|no> <to_id>
 ```
-`from_id`: The ID of the node to map from (Must be pre-defined)
-`<yes|no>`: The response that should be mapped
-`to_id`: The ID of the node to map to (Must be pre-defined)
+* `from_id`: The ID of the node to map from (Must be pre-defined)
+* `<yes|no>`: The response that should be mapped
+* `to_id`: The ID of the node to map to (Must be pre-defined)
 
 ### mkroot
 Every graph must have an entry point to start traversing, so `mkroot` is used to declare the root node.
 ```
 mkroot <node_id>
 ```
-`node_id`: The ID of the desired root (Must be pre-defined)
+* `node_id`: The ID of the desired root (Must be pre-defined)
 
 ### Whitespace and comments
-Whitespace is simply empty lines
-Comments are used by prefixing a line with `#`
-Any other line must be syntactically correct
+Whitespace is simply empty lines and comments are used by prefixing a line with `#`. Any other line must be syntactically correct
 
 ### Example
 As an example I'll write a script to define this decision graph:
 ![Decision Graph](https://i.imgur.com/l20SrZi.png)
-Green -> Entry Point
-Red -> Exit Point
+* Green -> Entry Point
+* Red -> Exit Point
 
 ```
-
 # For this example script we're going to be writing
 # The script that'll allow us to define the decision
 # graph found here:
