@@ -4,15 +4,16 @@ import java.util.HashMap;
 
 class Node {
 
-	private final String ID;
+	private final String ID, text;
 	private final HashMap<String, String> mappings = new HashMap<String, String>();
 	
 	/**
 	 * Create a new node
 	 * @param ID to assign
 	 */
-	public Node(String ID) {
+	public Node(String ID, String text) {
 		this.ID = ID;
+		this.text = text;
 	}
 	
 	/**
@@ -21,6 +22,14 @@ class Node {
 	 */
 	public String ID() {
 		return this.ID;
+	}
+	
+	/**
+	 * The text associated with this node
+	 * @return text
+	 */
+	public String text() {
+		return this.text;
 	}
 	
 	/**
