@@ -176,12 +176,26 @@ public class DecisionGraph {
 	}
 	
 	/**
+	 * Get the path traversed
+	 * @return Path
+	 */
+	public ArrayList<String> getPath() {
+		return this.path;
+	}
+	
+	/**
 	 * Assert a response during traversal
 	 * @param response
 	 */
 	public void assertResponse(String response) {
 		Node node = this.nodes.get(this.cur);
 		this.cur = this.nodes.get(node.getResponseResult(response)).ID();
+		
+		this.path.add(node.text());
+		this.path.add(response);
+		if(this.nodes.get(this.cur).isEndpoint()) {
+			this.path.add(this.nodes.get(this.cur).text());
+		}
 	}
 	
 	/**
