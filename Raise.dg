@@ -186,3 +186,31 @@ def wait6months false Wait 6 months
 asrt hope wait6months Yes
 asrt hope wait6months No
 asrt wait6months think Ok
+
+def notInterested false Not interested in your case?
+asrt anotherDepart notInterested No
+
+def bin true GET IN THE BIN
+asrt anotherDepart bin No
+
+def intelligent false Does it consider your case to be an intelligent one?
+asrt notInterested intelligent Yes
+asrt intelligent bin No
+
+def haveTime false Does it have time to deal with it?
+asrt intelligent haveTime Yes
+asrt haveTime bin No
+
+def understood false Has it really understood?
+asrt haveTime understood Yes
+
+def congrats false Does it offer congratulations?
+asrt understood congrats Yes
+asrt congrats return No
+
+def sendToTV false Send Mr X to TV1
+asrt understood sendToTV No
+
+def sinkIn false Leave him to absorb the message
+asrt sendToTV sinkIn Ok
+asrt sinkIn think Done
