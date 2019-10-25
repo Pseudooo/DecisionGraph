@@ -44,7 +44,7 @@ public class DecisionGraph {
 			if(ln.startsWith("#") || ln.equals("")) continue;		
 		
 			String[] cmd = ln.split(" ");
-			if(cmd[0].equals("define")) {
+			if(cmd[0].equals("define") || cmd[0].equals("def")) {
 				
 				/*
 				 * Syntax for define is:
@@ -70,7 +70,7 @@ public class DecisionGraph {
 				Node node = new Node(cmd[1], text, isEndpoint);
 				this.nodes.put(cmd[1], node);
 				
-			}else if(cmd[0].equals("assert")) {
+			}else if(cmd[0].equals("assert") || cmd[0].equals("asrt")) {
 				
 				/*
 				 * Syntax for assert is:
@@ -98,7 +98,7 @@ public class DecisionGraph {
 				Node node = this.nodes.get(cmd[1]);
 				node.assignResponse(response, cmd[2]);
 				
-			}else if(cmd[0].equals("mkroot")) {
+			}else if(cmd[0].equals("mkroot") || cmd[0].equals("mkrt")) {
 				
 				/*
 				 * Syntax for mkroot is:
