@@ -43,6 +43,7 @@ asrt A L Clothes
 
 def M false Can you afford to buy them?
 asrt L M New
+assert M E No
 
 def N false Online or shopping?
 asrt M N Yes
