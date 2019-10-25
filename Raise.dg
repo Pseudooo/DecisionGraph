@@ -106,7 +106,6 @@ asrt swallowedBone waitUntilTomoz Yes
 def askedToSit false Does he ask you to be seated?
 asrt enter askedToSit Ok
 
-# ---------------------------------------------------------------- NOT END POINT
 def relax false RELAX
 asrt askedToSit relax Yes
 
