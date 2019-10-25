@@ -37,3 +37,34 @@ asrt J E No
 def K false Order something!
 asrt J K Yes
 asrt K I Done
+
+def L false New clothes or your own?
+asrt A L Clothes
+
+def M false Can you afford to buy them?
+asrt L M New
+
+def N false Online or shopping?
+asrt M N Yes
+asrt N K Online
+
+def O false Is anything open?
+asrt N O Shopping
+asrt O E No
+
+def P false Go shopping!
+asrt O P Yes
+asrt P I Done
+
+def Q false What type of clothing?
+asrt L Q Own
+
+def R false Is it bedtime?
+asrt Q R Pyjamas
+
+def S true Go to sleep!
+asrt R S Yes
+
+def T false Oh, I forgot what you wanted now
+asrt R T No
+asrt T A *sigh*
