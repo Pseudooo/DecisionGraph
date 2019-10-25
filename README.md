@@ -34,3 +34,28 @@ Alternatively:
 ```
 mkrt <node_id>
 ```
+## Example
+As an example to show the script we're going to implement the following, very simple, decision graph using this syntax!
+![Decision Graph](https://i.imgur.com/mYhRzT7.png)
+```
+# Making an example decision graph!
+
+# These are called comments, if you need to store a note of sort in the script itself then
+# start the line with a # and it won't be interpretted by the program.
+
+# Defining the root node (entry point)
+def root false Do you want anything?
+mkrt root
+
+# Now we have two children, one of which is an endpoint
+def result false I don't have anything to give you!
+def end true Great!
+
+# Now we can assign our relationships between these nodes
+# There's a loop between root and result
+asrt root result Yes
+asrt result root Ok
+
+# Now we also need a link to the end node
+asrt root end No
+```
