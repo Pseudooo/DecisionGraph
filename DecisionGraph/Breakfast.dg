@@ -1,0 +1,31 @@
+
+define A false What do you want?
+mkroot A
+
+define B true Great!
+assert A B Nothing
+
+define C false Do you want to cook food?
+assert A C Food
+
+define D false Can you afford to buy food?
+assert C D No
+
+define E false Then that's too bad
+assert D E No
+assert E A Ok
+
+define F false Is there anything to cook?
+assert C F Yes
+
+define G false Then we can't cook anything
+assert F G No
+assert G D Ok
+
+define H false Cook it!
+assert F H Yes
+
+define I false Do you want anything else?
+assert H I Done!
+assert I A Yes
+assert I B No
