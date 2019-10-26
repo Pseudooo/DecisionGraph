@@ -70,6 +70,7 @@ public class Main {
 			if(i != textPath.size() - 1) { // Text path always +1
 				System.out.println("Response: " + responsePath.get(i));
 			}
+			
 		}
 		
 	}
