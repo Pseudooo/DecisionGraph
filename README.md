@@ -100,6 +100,7 @@ define <node_id> <is_endpoint> <text...>
 * `node_id` -> The desired ID of the node, this must be unique
 * `is_endpoint` -> boolean to determine if this node is an endpoint
 * `text` -> The text associated with the node
+
 Alternatively, we can use def:
 ```
 def <node_id> <is_endpoint> <text...>
@@ -112,6 +113,7 @@ assert <from_id> <to_id> <response...>
 * `from_id` -> The ID of the node that the mapping will run **FROM**
 * `to_id` -> The ID of the node that the mapping will run **TOO**
 * `response` -> The response required to run this mapping
+
 Alternatively:
 ```
 asrt <from_id> <to_id> <response...>
@@ -122,6 +124,7 @@ The `mkroot` keyword (`mkrt` can be used as a shoter alternative) is used to del
 mkroot <node_id>
 ```
 * `node_id` -> The ID of the node to declare as root
+
 Alternatively:
 ```
 mkrt <node_id>
