@@ -49,7 +49,7 @@ public class Main {
 			// Invalid response?
 			if(!responses.contains(res)) {
 				System.err.println("Invalid");
-				continue;
+				continue; // Skip assertion
 			}
 			
 			dg.assertResponse(res);
