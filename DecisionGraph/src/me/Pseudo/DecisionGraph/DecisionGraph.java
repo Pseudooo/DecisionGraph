@@ -2,9 +2,19 @@ package me.Pseudo.DecisionGraph;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import me.Pseudo.DecisionGraph.Exceptions.ChildlessNodeException;
+import me.Pseudo.DecisionGraph.Exceptions.InvalidArgumentsException;
+import me.Pseudo.DecisionGraph.Exceptions.InvalidOperationException;
+import me.Pseudo.DecisionGraph.Exceptions.NodeAlreadyDefinedException;
+import me.Pseudo.DecisionGraph.Exceptions.NodeNotDefinedException;
+import me.Pseudo.DecisionGraph.Exceptions.RootNodeMissingException;
+import me.Pseudo.DecisionGraph.Exceptions.UnreadableFileException;
 
 public class DecisionGraph {
 
@@ -13,23 +23,27 @@ public class DecisionGraph {
 	
 	// Current and path for active traversal
 	private String cur = null;
-	private ArrayList<String> path = null;
+	
+	private ArrayList<String> textPath = null;
+	private ArrayList<String> responsePath = null;
 	
 	/**
 	 * Create a new decision graph from a dg script
 	 * @param f File to load
 	 * @throws Exception
 	 */
-	public DecisionGraph(File f) throws Exception {
+	public DecisionGraph(File f) throws FileNotFoundException, UnreadableFileException, IOException,
+	InvalidArgumentsException, NodeAlreadyDefinedException, NodeNotDefinedException, 
+	InvalidOperationException, RootNodeMissingException, ChildlessNodeException {
 		
 		// No file
 		if(!f.exists()) {
-			throw new Exception("File not found!");
+			throw new FileNotFoundException();
 		}
 		
 		// Can't read
 		if(!f.canRead()) {
-			throw new Exception("Can't read file!");
+			throw new UnreadableFileException();
 		}
 		
 		// ******************************* START OF FILE READING **************************************
@@ -51,11 +65,11 @@ public class DecisionGraph {
 				 * define <node_id> <is_endpoint> <text>
 				 */
 				if(cmd.length < 4) { // Not enough args
-					throw new Exception(String.format("Too Few Arguments @ %d!", line));
+					throw new InvalidArgumentsException(line);
 				}
 				
 				if(this.nodes.containsKey(cmd[1])) { // Node already defined
-					throw new Exception(String.format("Node %s Is Already Defined @ %d!", cmd[1], line));
+					throw new NodeAlreadyDefinedException(cmd[1], line);
 				}
 				
 				// Parse endpoint status
@@ -77,15 +91,15 @@ public class DecisionGraph {
 				 * assert <from_id> <to_id> <response>
 				 */
 				if(cmd.length < 4) { // Not enough args
-					throw new Exception(String.format("Too Few Arguments @ %d!", line));
+					throw new InvalidArgumentsException(line);
 				}
 				
 				// Check both nodes are defined
 				if(!this.nodes.containsKey(cmd[1])) {
-					throw new Exception(String.format("Node %s Is Not Defined @ %d!", cmd[1], line));
+					throw new NodeNotDefinedException(cmd[1], line);
 				}
 				if(!this.nodes.containsKey(cmd[2])) {
-					throw new Exception(String.format("Node %s Is Not Defined @ %d!", cmd[2], line));
+					throw new NodeNotDefinedException(cmd[1], line);
 				}
 				
 				// Parse response
@@ -105,11 +119,11 @@ public class DecisionGraph {
 				 * mkroot <node_id>
 				 */
 				if(cmd.length != 2) { // Invalid Arguments
-					throw new Exception(String.format("Invalid Arguments @ %d!", line));
+					throw new InvalidArgumentsException(line);
 				}
 				
 				if(!this.nodes.containsKey(cmd[1])) { // Not defined
-					throw new Exception(String.format("Node Not Defined @ %d!", line));
+					throw new NodeNotDefinedException(cmd[1], line);
 				}
 				
 				rt = cmd[1];
@@ -117,7 +131,7 @@ public class DecisionGraph {
 			}else {
 				
 				// Invalid Operation!
-				throw new Exception(String.format("Invalid Operation @ %d!", line));
+				throw new InvalidOperationException(line);
 				
 			}
 			
@@ -128,16 +142,14 @@ public class DecisionGraph {
 		
 		// Make sure that a root has been declared
 		if(rt == null) {
-			throw new Exception("Root Node Not Declared!");
+			throw new RootNodeMissingException();
 		}
 		this.root = rt;
 		
 		// Check all non-endings have children
 		for(Node node : this.nodes.values()) {
 			if(!node.isEndpoint() && node.responseCount() == 0) {
-				throw new Exception(String.format(
-							"%s Is Not An Endpoint But Has No Children!", node.ID())
-						);
+				throw new ChildlessNodeException(node.ID());
 			}
 		}
 		
@@ -156,15 +168,18 @@ public class DecisionGraph {
 	 */
 	public void startTraversing() {
 		this.cur = this.root;
-		this.path = new ArrayList<String>();
+		this.textPath = new ArrayList<String>();
+		this.textPath.add(this.text()); // Enter root node into path
+		this.responsePath = new ArrayList<String>();
 	}
 	
 	/**
 	 * End traversing of the graph
 	 */
-	public void endTraversing() {
+	public void endTraversal() {
 		this.cur = null;
-		this.path = null;
+		this.textPath = null;
+		this.responsePath = null;
 	}
 	
 	/**
@@ -176,11 +191,19 @@ public class DecisionGraph {
 	}
 	
 	/**
-	 * Get the path traversed
-	 * @return Path
+	 * Get the text of the nodes traversed through in order
+	 * @return Text path
 	 */
-	public ArrayList<String> getPath() {
-		return this.path;
+	public ArrayList<String> getTextPath() {
+		return this.textPath;
+	}
+	
+	/**
+	 * Get the responses given during traversal in order
+	 * @return Response path
+	 */
+	public ArrayList<String> getResponsePath() {
+		return this.responsePath;
 	}
 	
 	/**
@@ -190,12 +213,8 @@ public class DecisionGraph {
 	public void assertResponse(String response) {
 		Node node = this.nodes.get(this.cur);
 		this.cur = this.nodes.get(node.getResponseResult(response)).ID();
-		
-		this.path.add(node.text());
-		this.path.add(response);
-		if(this.nodes.get(this.cur).isEndpoint()) {
-			this.path.add(this.nodes.get(this.cur).text());
-		}
+		this.responsePath.add(response);
+		this.textPath.add(this.text());
 	}
 	
 	/**
