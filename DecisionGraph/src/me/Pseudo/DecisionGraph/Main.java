@@ -61,9 +61,11 @@ public class Main {
 		System.out.println("End reached");
 		System.out.println("This has been your path: ");
 		
+		// Notify user of their path through the graph
 		ArrayList<String> textPath = dg.getTextPath();
 		ArrayList<String> responsePath = dg.getResponsePath();
 		
+		// Output paths
 		for(int i = 0; i < textPath.size(); i++) {
 			
 			System.out.println("Node: " + textPath.get(i));
