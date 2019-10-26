@@ -91,6 +91,59 @@ Once a graph has finished being traversed call:
 myDecisionGraph.endTraversal();
 ```
 Note this will clear both of the paths held by the structure.
+### Example
+A simple program that'll allow the user to traverse their graph is:
+```java
+private static void traverse(DecisionGraph dg) {
+	
+	// Setup for console traversal
+	Scanner sc = new Scanner(System.in);
+	dg.startTraversing();
+	
+	// Start traversing graph
+	while(!dg.isEndpoint()) {
+		
+		// Show text and available responses
+		System.out.println("Text: " + dg.text());
+		ArrayList<String> responses = dg.getResponses();
+		System.out.println("Responses: " + responses.toString());
+		
+		// Request a choice
+		System.out.print("Choice: ");
+		String res = sc.nextLine();
+		
+		// Invalid response?
+		if(!responses.contains(res)) {
+			System.err.println("Invalid");
+			continue; // Skip assertion
+		}
+		
+		dg.assertResponse(res);
+		
+	}
+	
+	// End reached
+	System.out.println(dg.text());
+	System.out.println("End reached");
+	System.out.println("This has been your path: ");
+	
+	// Notify user of their path through the graph
+	ArrayList<String> textPath = dg.getTextPath();
+	ArrayList<String> responsePath = dg.getResponsePath();
+	
+	// Output paths
+	for(int i = 0; i < textPath.size(); i++) {
+		
+		System.out.println("Node: " + textPath.get(i));
+		if(i != textPath.size() - 1) { // Text path always +1
+			System.out.println("Response: " + responsePath.get(i));
+		}
+		
+	}
+	
+}
+```
+Which will allow text-based traversal within the console window
 ## Syntax
 ### define
 The `define` keyword (`def` can be used as a shorter alternative) is used to define the nodes of your graph like so:
