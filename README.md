@@ -1,4 +1,96 @@
 # Decision Graphs
+## Creation
+In order to create a DecisionGraph object within your program you're going to need to read it from a valid script file. The syntax of which can be viewed [here](#Syntax).
+
+Once a file exists on the system we can instantiate it like so:
+```java
+DecisionGraph dg = null;
+File f = new File("MyFile.dg");
+try {
+	dg = new DecisionGraph(f);
+} catch (FileNotFoundException e) {
+	// ...
+} catch (InvalidArgumentsException e) {
+	// ...
+} catch (NodeAlreadyDefinedException e) {
+	// ...
+} catch (NodeNotDefinedException e) {
+	// ...
+} catch (InvalidOperationException e) {
+	// ...
+} catch (RootNodeMissingException e) {
+	// ...
+} catch (ChildlessNodeException e) {
+	// ...
+} catch (UnreadableFileException e) {
+	// ...
+} catch (IOException e) {
+	// ...
+}finally {
+	// ...
+}
+```
+This will catch all of the respective exceptions should you want to handle them individually, alternatively, should you want to handle all of the syntactical exceptions in one place we can throw their super class:
+```java
+try {
+	dg = new DecisionGraph(f);
+} catch (FileNotFoundException e) {
+	// ...
+} catch (InvalidSyntaxException e) {
+	// ...
+} catch (UnreadableFileException e) {
+	// ...
+} catch (IOException e) {
+	// ...
+}finally {
+	// ...
+}
+```
+## Traversal
+The decision graph object will also handle traversal of the internal graph internally and we can check updates from various methods.
+### Starting Traversal
+Before starting traversal of the graph use:
+```java
+myDecisionGraph.startTraversing();
+```
+### Decisions
+#### Getting text
+```java
+myDecisionGraph.text();
+```
+returns `String`
+#### Getting possible responses
+```java
+myDecisionGraph.getResponses()
+```
+returns `ArrayList<String>`
+#### Asserting response
+```java
+myDecisionGraph.assertResponse(String response);
+```
+Note: If the response isn't defined in `myDecisionGraph.getResponses()` then it will throw an exception
+### End points
+```java
+myDecisionGraph.isEndpoint()
+```
+returns `boolean` of true if current node **is** an end-point
+### Paths
+#### Node text path
+```java
+myDecisionGraph.getTextPath()
+```
+returns `ArrayList<String>`
+#### Responses given
+```java
+myDecisionGraph.getResponsePath()
+```
+returns `ArrayList<String>`
+### Ending Traversal
+Once a graph has finished being traversed call:
+```java
+myDecisionGraph.endTraversal();
+```
+Note this will clear both of the paths held by the structure.
 ## Syntax
 ### define
 The `define` keyword (`def` can be used as a shorter alternative) is used to define the nodes of your graph like so:
