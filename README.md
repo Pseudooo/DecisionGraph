@@ -94,7 +94,7 @@ Note this will clear both of the paths held by the structure.
 ### Example
 A simple program that'll allow the user to traverse their graph is:
 ```java
-private static void traverse(DecisionGraph dg) {
+public static void traverse(DecisionGraph dg) {
 	
 	// Setup for console traversal
 	Scanner sc = new Scanner(System.in);
