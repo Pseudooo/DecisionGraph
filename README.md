@@ -1,4 +1,24 @@
 # Decision Graphs
+## Contents
+
+* [Using the Jar](#Using-The-Jar)
+* [Creation](#Creation)
+* [Traversal](#Traversal)
+* [Syntax](#Syntax)
+* [Example](#Example)
+
+## Using The Jar
+### Traversing a defined graph
+Command:
+```
+java -jar DecisionGraph.jar tv <YourScript.dg>
+```
+So we can use the [example](#Example) script covered below to demonstrate this:
+![ls](https://i.imgur.com/2DEPY9m.png)
+
+Running the command will start traversal of the graph:
+![traversal](https://i.imgur.com/MZipyrG.png)
+
 ## Creation
 In order to create a DecisionGraph object within your program you're going to need to read it from a valid script file. The syntax of which can be viewed [here](#Syntax).
 
