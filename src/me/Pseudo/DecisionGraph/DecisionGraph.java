@@ -5,232 +5,148 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 
-import me.Pseudo.DecisionGraph.Exceptions.ChildlessNodeException;
-import me.Pseudo.DecisionGraph.Exceptions.InvalidArgumentsException;
-import me.Pseudo.DecisionGraph.Exceptions.InvalidOperationException;
-import me.Pseudo.DecisionGraph.Exceptions.NodeAlreadyDefinedException;
-import me.Pseudo.DecisionGraph.Exceptions.NodeNotDefinedException;
-import me.Pseudo.DecisionGraph.Exceptions.RootNodeMissingException;
-import me.Pseudo.DecisionGraph.Exceptions.UnreadableFileException;
+import me.Pseudo.DecisionGraph.Exceptions.InvalidSyntaxException;
 
 public class DecisionGraph {
-
-	private final String root;
-	private final HashMap<String, Node> nodes = new HashMap<String, Node>();
 	
-	// Current and path for active traversal
-	private String cur = null;
+	private final HashMap<String, Node> nodes;
+	private String root;
 	
-	private ArrayList<String> textPath = null;
-	private ArrayList<String> responsePath = null;
+	private DecisionGraph() {
+		this.nodes = new HashMap<String, Node>();
+		this.root = null;
+	}
 	
-	/**
-	 * Create a new decision graph from a dg script
-	 * @param f File to load
-	 * @throws Exception
-	 */
-	public DecisionGraph(File f) throws FileNotFoundException, UnreadableFileException, IOException,
-	InvalidArgumentsException, NodeAlreadyDefinedException, NodeNotDefinedException, 
-	InvalidOperationException, RootNodeMissingException, ChildlessNodeException {
+	protected boolean setRoot(String id) {
+		boolean s = this.nodes.containsKey(id);
+		if(s) root = id;
+		return s;
+	}
+	
+	protected boolean nodeExists(String id) {
+		return this.nodes.containsKey(id);
+	}
+	
+	protected Node getNode(String id) {
+		return this.nodes.get(id);
+	}
+	
+	protected void defineNode(Node node) {
+		this.nodes.put(node.ID(), node);
+	}
+	
+	public static DecisionGraph fromFile(File f) 
+	throws FileNotFoundException, IOException, InvalidSyntaxException {
 		
-		// No file
-		if(!f.exists()) {
-			throw new FileNotFoundException();
-		}
+		// Check file is ok for reading
+		if(!f.exists())
+			throw new FileNotFoundException("Provided file doesn't exist!");
 		
-		// Can't read
-		if(!f.canRead()) {
-			throw new UnreadableFileException();
-		}
+		if(!f.canRead())
+			throw new IOException("Provided file is unreadable!");
 		
-		// ******************************* START OF FILE READING **************************************
+		DecisionGraph dg = new DecisionGraph();
 		
-		BufferedReader br = new BufferedReader(new FileReader(f));
-		String ln, rt = null;
-		int line = 0;
-		while((ln = br.readLine()) != null) {
-			line++;
+		// Prepare to read from file
+		String line;
+		int lineCount = 0;
+		
+		// BufferedReader implements AutoCloseable
+		try(BufferedReader br = new BufferedReader(new FileReader(f))) {
 			
-			// Ignore whitespace and comments
-			if(ln.startsWith("#") || ln.equals("")) continue;		
-		
-			String[] cmd = ln.split(" ");
-			if(cmd[0].equals("define") || cmd[0].equals("def")) {
+			// Read from file 
+			while((line = br.readLine()) != null) {
+				lineCount++;
 				
-				/*
-				 * Syntax for define is:
-				 * define <node_id> <is_endpoint> <text>
-				 */
-				if(cmd.length < 4) { // Not enough args
-					throw new InvalidArgumentsException(line);
+				// Skip blank lines and comments
+				if(line.startsWith("#") || line.isEmpty())
+					continue;
+				
+				// Segment command and exec
+				String[] cmd = line.split(" ");
+				switch(cmd[0]) {
+				// define <node_id> <is_endpoint> <label...>
+				case "define":
+				case "def":
+					
+					// Catch errors
+					if(cmd.length < 4)
+						throw new InvalidSyntaxException("Insufficient Parameters for define:" + lineCount);
+					
+					if(dg.nodeExists(cmd[1]))
+						throw new InvalidSyntaxException("Node:" + cmd[1] + " has a pre-existing definition:" + lineCount);
+					
+					boolean endpoint = Boolean.parseBoolean(cmd[2]);
+					
+					// Parse label from cmd arguments
+					StringBuilder lbl_ = new StringBuilder();
+					for(int i = 3; i < cmd.length; i++)
+						lbl_.append(cmd[i] + (i == cmd.length - 1 ? "" : " "));
+					String label = lbl_.toString();
+					
+					// Construct node & define node
+					Node node = new Node(cmd[1], label, endpoint);
+					dg.defineNode(node);
+					
+					break;
+				
+				// assert <from_id> <to_id> <response>
+				case "assert":
+				case "asrt":
+					
+					// Catch errors
+					if(cmd.length < 4)
+						throw new InvalidSyntaxException("Insufficient Parameters for assert:"+lineCount);
+					
+					if(!dg.nodeExists(cmd[1]))
+						throw new InvalidSyntaxException("Node:"+cmd[1]+":"+lineCount+" is not defined!");
+					
+					if(!dg.nodeExists(cmd[2]))
+						throw new InvalidSyntaxException("Node:"+cmd[2]+":"+lineCount+" is not defined!");
+					
+					// Parse response from cmd array
+					StringBuilder res_ = new StringBuilder();
+					for(int i = 3; i < cmd.length; i++)
+						res_.append(cmd[i] + (i == cmd.length - 1 ? "" : " "));
+					String response = res_.toString();
+					
+					// Check for pre-existing response
+					Node n = dg.getNode(cmd[1]);
+					if(n.responses().contains(response))
+						throw new InvalidSyntaxException("Node:"+cmd[1]+":"+lineCount+" already has a route: "+response);
+					
+					n.assignResponse(response, cmd[2]);
+					
+					break;
+					
+				// makeroot <node_id>
+				case "makeroot":
+				case "mkroot":
+				case "mkrt":
+					
+					if(cmd.length != 2)
+						throw new InvalidSyntaxException("Invalid Parameters for makeroot:"+lineCount);
+					
+					if(!dg.nodeExists(cmd[1]))
+						throw new InvalidSyntaxException("Node:"+cmd[1]+" is not defined:"+lineCount);
+					
+					dg.setRoot(cmd[1]);
+					
+					break;
+					
+				default:
+					throw new InvalidSyntaxException("Invalid Operation:"+lineCount);
+				
 				}
-				
-				if(this.nodes.containsKey(cmd[1])) { // Node already defined
-					throw new NodeAlreadyDefinedException(cmd[1], line);
-				}
-				
-				// Parse endpoint status
-				boolean isEndpoint = Boolean.parseBoolean(cmd[2]);
-				
-				String text = "";
-				for(int i = 3; i < cmd.length; i++) {
-					text += cmd[i] + (i == cmd.length - 1 ? "" : " ");
-				}
-				
-				// Place node into hashmap
-				Node node = new Node(cmd[1], text, isEndpoint);
-				this.nodes.put(cmd[1], node);
-				
-			}else if(cmd[0].equals("assert") || cmd[0].equals("asrt")) {
-				
-				/*
-				 * Syntax for assert is:
-				 * assert <from_id> <to_id> <response>
-				 */
-				if(cmd.length < 4) { // Not enough args
-					throw new InvalidArgumentsException(line);
-				}
-				
-				// Check both nodes are defined
-				if(!this.nodes.containsKey(cmd[1])) {
-					throw new NodeNotDefinedException(cmd[1], line);
-				}
-				if(!this.nodes.containsKey(cmd[2])) {
-					throw new NodeNotDefinedException(cmd[1], line);
-				}
-				
-				// Parse response
-				String response = "";
-				for(int i = 3; i < cmd.length; i++) {
-					response += cmd[i] + (i == cmd.length - 1 ? "" : " ");
-				}
-				
-				// Assign response mapping to node
-				Node node = this.nodes.get(cmd[1]);
-				node.assignResponse(response, cmd[2]);
-				
-			}else if(cmd[0].equals("mkroot") || cmd[0].equals("mkrt")) {
-				
-				/*
-				 * Syntax for mkroot is:
-				 * mkroot <node_id>
-				 */
-				if(cmd.length != 2) { // Invalid Arguments
-					throw new InvalidArgumentsException(line);
-				}
-				
-				if(!this.nodes.containsKey(cmd[1])) { // Not defined
-					throw new NodeNotDefinedException(cmd[1], line);
-				}
-				
-				rt = cmd[1];
-				
-			}else {
-				
-				// Invalid Operation!
-				throw new InvalidOperationException(line);
 				
 			}
 			
 		}
-		br.close();
 		
-		// ********************************** END OF FILE READING *************************************
+		return dg;
 		
-		// Make sure that a root has been declared
-		if(rt == null) {
-			throw new RootNodeMissingException();
-		}
-		this.root = rt;
-		
-		// Check all non-endings have children
-		for(Node node : this.nodes.values()) {
-			if(!node.isEndpoint() && node.responseCount() == 0) {
-				throw new ChildlessNodeException(node.ID());
-			}
-		}
-		
-	}
-	
-	/**
-	 * Check if this graph is actively being traversed
-	 * @return
-	 */
-	public boolean isBeingTraversed() {
-		return this.cur == null;
-	}
-	
-	/**
-	 * Setup this graph to start traversing
-	 */
-	public void startTraversing() {
-		this.cur = this.root;
-		this.textPath = new ArrayList<String>();
-		this.textPath.add(this.text()); // Enter root node into path
-		this.responsePath = new ArrayList<String>();
-	}
-	
-	/**
-	 * End traversing of the graph
-	 */
-	public void endTraversal() {
-		this.cur = null;
-		this.textPath = null;
-		this.responsePath = null;
-	}
-	
-	/**
-	 * Get a list of valid responses
-	 * @return Responses
-	 */
-	public ArrayList<String> getResponses() {
-		return this.nodes.get(this.cur).responses();
-	}
-	
-	/**
-	 * Get the text of the nodes traversed through in order
-	 * @return Text path
-	 */
-	public ArrayList<String> getTextPath() {
-		return this.textPath;
-	}
-	
-	/**
-	 * Get the responses given during traversal in order
-	 * @return Response path
-	 */
-	public ArrayList<String> getResponsePath() {
-		return this.responsePath;
-	}
-	
-	/**
-	 * Assert a response during traversal
-	 * @param response
-	 */
-	public void assertResponse(String response) {
-		Node node = this.nodes.get(this.cur);
-		this.cur = this.nodes.get(node.getResponseResult(response)).ID();
-		this.responsePath.add(response);
-		this.textPath.add(this.text());
-	}
-	
-	/**
-	 * Check if currently at an end-point
-	 * @return
-	 */
-	public boolean isEndpoint() {
-		return this.nodes.get(this.cur).isEndpoint();
-	}
-	
-	/**
-	 * Get the text of the current node
-	 * @return
-	 */
-	public String text() {
-		return this.nodes.get(this.cur).text();
 	}
 	
 }
