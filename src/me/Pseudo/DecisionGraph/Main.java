@@ -3,6 +3,8 @@ package me.Pseudo.DecisionGraph;
 import java.io.File;
 import java.util.Scanner;
 
+import me.Pseudo.DecisionGraph.Exceptions.InvalidSyntaxException;
+
 public class Main {
 
 	public static void main(String[] args) {
@@ -38,7 +40,7 @@ public class Main {
 			
 		}else if(args.length == 0) {
 			
-			// TODO: Run repl for building/traversing Decision graph
+			repl();
 			
 		}else {
 			System.out.println("Invalid Arguments!");
@@ -82,6 +84,69 @@ public class Main {
 		
 		System.out.printf(" * * * [%03d] (end)%n", ++step);
 		System.out.printf("Label: %s%n", dg.getCurrentLabel());
+		
+	}
+	
+	private static void repl() {
+		
+		System.out.println("DecisionGraph REPL");
+		System.out.println("Use :help for help");
+		
+		DecisionGraph dg = new DecisionGraph();
+		
+		Scanner sc = new Scanner(System.in);
+		loop: while(true) {
+			
+			// Ask for user-input
+			System.out.print("- ");
+			String[] cmd = sc.nextLine().split(" ");
+			
+			// Determine how to handle
+			switch(cmd[0]) {
+			
+			case ":help":
+			case ":h":
+				System.out.println(":quit -> Quit");
+				System.out.println(":load -> Load");
+				break;
+			
+			case "quit":
+			case ":q":
+				System.out.println("Bye!");
+				break loop; // Break while-loop
+			
+			case ":load":
+			case ":l":
+				
+				// :l on its own will unload files 
+				if(cmd.length == 1) {
+					dg = new DecisionGraph();
+				}else {
+					try {
+						dg = DecisionGraph.fromFile(new File(cmd[1]));
+					}catch(Exception e) {
+						e.printStackTrace();
+					}
+				}
+				
+				break;
+			
+			case ":enter":
+			case ":e":
+				
+				// TODO: Write utility to handle "entering" a DecisionGraph
+				
+				break;
+				
+			default:
+				try {
+					dg.exec(cmd, -1);
+				} catch (InvalidSyntaxException e) {
+					e.printStackTrace();
+				}
+			}
+			
+		}
 		
 	}
 	

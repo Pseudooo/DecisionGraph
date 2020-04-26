@@ -105,7 +105,7 @@ public class DecisionGraph {
 	
 	// * * * * * * * * * INTERNAL FUNCTIONS 
 	
-	private DecisionGraph() {
+	protected DecisionGraph() {
 		this.nodes = new HashMap<String, Node>();
 		this.root = null;
 	}
@@ -130,6 +130,85 @@ public class DecisionGraph {
 	
 	protected void defineNode(Node node) {
 		this.nodes.put(node.ID(), node);
+	}
+	
+	protected void exec(String[] cmd, int lineCount) throws InvalidSyntaxException {
+		
+		switch(cmd[0]) {
+		// define <node_id> <is_endpoint> <label...>
+		case "define":
+		case "def":
+			
+			// Catch errors
+			if(cmd.length < 4)
+				throw new InvalidSyntaxException("Insufficient Parameters for define:" + lineCount);
+			
+			if(nodeExists(cmd[1]))
+				throw new InvalidSyntaxException("Node:" + cmd[1] + " has a pre-existing definition:" + lineCount);
+			
+			boolean endpoint = Boolean.parseBoolean(cmd[2]);
+			
+			// Parse label from cmd arguments
+			StringBuilder lbl_ = new StringBuilder();
+			for(int i = 3; i < cmd.length; i++)
+				lbl_.append(cmd[i] + (i == cmd.length - 1 ? "" : " "));
+			String label = lbl_.toString();
+			
+			// Construct node & define node
+			Node node = new Node(cmd[1], label, endpoint);
+			defineNode(node);
+			
+			break;
+		
+		// assert <from_id> <to_id> <response>
+		case "assert":
+		case "asrt":
+			
+			// Catch errors
+			if(cmd.length < 4)
+				throw new InvalidSyntaxException("Insufficient Parameters for assert:"+lineCount);
+			
+			if(!nodeExists(cmd[1]))
+				throw new InvalidSyntaxException("Node:"+cmd[1]+":"+lineCount+" is not defined!");
+			
+			if(!nodeExists(cmd[2]))
+				throw new InvalidSyntaxException("Node:"+cmd[2]+":"+lineCount+" is not defined!");
+			
+			// Parse response from cmd array
+			StringBuilder res_ = new StringBuilder();
+			for(int i = 3; i < cmd.length; i++)
+				res_.append(cmd[i] + (i == cmd.length - 1 ? "" : " "));
+			String response = res_.toString();
+			
+			// Check for pre-existing response
+			Node n = getNode(cmd[1]);
+			if(n.responses().contains(response))
+				throw new InvalidSyntaxException("Node:"+cmd[1]+":"+lineCount+" already has a route: "+response);
+			
+			n.assignResponse(response, cmd[2]);
+			
+			break;
+			
+		// makeroot <node_id>
+		case "makeroot":
+		case "mkroot":
+		case "mkrt":
+			
+			if(cmd.length != 2)
+				throw new InvalidSyntaxException("Invalid Parameters for makeroot:"+lineCount);
+			
+			if(!nodeExists(cmd[1]))
+				throw new InvalidSyntaxException("Node:"+cmd[1]+" is not defined:"+lineCount);
+			
+			setRoot(cmd[1]);
+			
+			break;
+			
+		default:
+			throw new InvalidSyntaxException("Invalid Operation:"+lineCount);
+		
+		}
+		
 	}
 	
 	/**
@@ -169,80 +248,7 @@ public class DecisionGraph {
 				
 				// Segment command and exec
 				String[] cmd = line.split(" ");
-				switch(cmd[0]) {
-				// define <node_id> <is_endpoint> <label...>
-				case "define":
-				case "def":
-					
-					// Catch errors
-					if(cmd.length < 4)
-						throw new InvalidSyntaxException("Insufficient Parameters for define:" + lineCount);
-					
-					if(dg.nodeExists(cmd[1]))
-						throw new InvalidSyntaxException("Node:" + cmd[1] + " has a pre-existing definition:" + lineCount);
-					
-					boolean endpoint = Boolean.parseBoolean(cmd[2]);
-					
-					// Parse label from cmd arguments
-					StringBuilder lbl_ = new StringBuilder();
-					for(int i = 3; i < cmd.length; i++)
-						lbl_.append(cmd[i] + (i == cmd.length - 1 ? "" : " "));
-					String label = lbl_.toString();
-					
-					// Construct node & define node
-					Node node = new Node(cmd[1], label, endpoint);
-					dg.defineNode(node);
-					
-					break;
-				
-				// assert <from_id> <to_id> <response>
-				case "assert":
-				case "asrt":
-					
-					// Catch errors
-					if(cmd.length < 4)
-						throw new InvalidSyntaxException("Insufficient Parameters for assert:"+lineCount);
-					
-					if(!dg.nodeExists(cmd[1]))
-						throw new InvalidSyntaxException("Node:"+cmd[1]+":"+lineCount+" is not defined!");
-					
-					if(!dg.nodeExists(cmd[2]))
-						throw new InvalidSyntaxException("Node:"+cmd[2]+":"+lineCount+" is not defined!");
-					
-					// Parse response from cmd array
-					StringBuilder res_ = new StringBuilder();
-					for(int i = 3; i < cmd.length; i++)
-						res_.append(cmd[i] + (i == cmd.length - 1 ? "" : " "));
-					String response = res_.toString();
-					
-					// Check for pre-existing response
-					Node n = dg.getNode(cmd[1]);
-					if(n.responses().contains(response))
-						throw new InvalidSyntaxException("Node:"+cmd[1]+":"+lineCount+" already has a route: "+response);
-					
-					n.assignResponse(response, cmd[2]);
-					
-					break;
-					
-				// makeroot <node_id>
-				case "makeroot":
-				case "mkroot":
-				case "mkrt":
-					
-					if(cmd.length != 2)
-						throw new InvalidSyntaxException("Invalid Parameters for makeroot:"+lineCount);
-					
-					if(!dg.nodeExists(cmd[1]))
-						throw new InvalidSyntaxException("Node:"+cmd[1]+" is not defined:"+lineCount);
-					
-					dg.setRoot(cmd[1]);
-					
-					break;
-					
-				default:
-					throw new InvalidSyntaxException("Invalid Operation:"+lineCount);
-				
-				}
+				dg.exec(cmd, lineCount);
 				
 			}
 			
