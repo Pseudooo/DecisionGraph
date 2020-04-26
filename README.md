@@ -1,116 +1,104 @@
 # Decision Graphs
 ## Contents
 
-* [Using the Jar](#Using-The-Jar)
-* [Creation](#Creation)
-* [Traversal](#Traversal)
-* [Syntax](#Syntax)
-* [Example](#Example)
+- [Using the Jar](#Using-The-Jar)
+- [The API](#The-API)
+  - [Getting a DecisionGraph Instance](#Getting-a-DeicisionGraph-Instance)
+  - [Traversing an Instance](#Traversing-an-Instance)
+  - [Giving a Response](#Giving-a-Response)
+- [Terminating-Traversal](#Terminating-Traversal)
+- [Traversal](#Traversal)
+- [Syntax](#Syntax)
+- [Example](#Example)
 
 ## Using The Jar
-### Traversing a defined graph
-Command:
+### Traversing DecisionGraph Script
+The built Jar-file can be used to traverse readily made DecisionGraph scripts (.dg) the argument `traverse` or its shorter alias, `tv`, can be used like so:
 ```
-java -jar DecisionGraph.jar tv <YourScript.dg>
+java -jar DecisionGraph.jar traverse <YourScript.dg>
 ```
-So we can use the [example](#Example) script covered below to demonstrate this:
-![ls](https://i.imgur.com/2DEPY9m.png)
 
-Running the command will start traversal of the graph:
-![traversal](https://i.imgur.com/MZipyrG.png)
+This will start traversing your graph at its defined root node, if the script is not valid then it will notify you of any errors. Should you wish you start somewhere else in the `DecisionGraph` you've defined you can specificy the start node like so:
+```
+java -jar DecisionGraph.jar traverse <YourScript.dg> <start_node>
+```
 
-## Creation
-In order to create a DecisionGraph object within your program you're going to need to read it from a valid script file. The syntax of which can be viewed [here](#Syntax).
+If we make use of the [example](#Example) script covered below we can view the following:
 
-Once a file exists on the system we can instantiate it like so:
+![Example of root traversal](https://i.imgur.com/hxShwTL.png)
+
+We can also specify our starting node:
+
+![Example of specifying a start point](https://i.imgur.com/7nzNrkT.png)
+
+## The API
+
+### Getting a DecisionGraph Instance
+In order to obtain an instance of the `DecisionGraph` class we're going to need access to a valid script file, such as the one described down in the [example](#Example). There's a `static` method that we can use to load a script from a file like so:
 ```java
 DecisionGraph dg = null;
-File f = new File("MyFile.dg");
 try {
-	dg = new DecisionGraph(f);
-} catch (FileNotFoundException e) {
-	// ...
-} catch (InvalidArgumentsException e) {
-	// ...
-} catch (NodeAlreadyDefinedException e) {
-	// ...
-} catch (NodeNotDefinedException e) {
-	// ...
-} catch (InvalidOperationException e) {
-	// ...
-} catch (RootNodeMissingException e) {
-	// ...
-} catch (ChildlessNodeException e) {
-	// ...
-} catch (UnreadableFileException e) {
-	// ...
-} catch (IOException e) {
-	// ...
-}finally {
-	// ...
+    dg = DecisionGraph.fromFile(new File("MyFile.dg"));
+}catch(FileNotFoundException e) {
+    // ...
+}catch(IOException e) {
+    // ...
+}catch(InvalidSyntaxException e) {
+    // ...
 }
 ```
-This will catch all of the respective exceptions should you want to handle them individually, alternatively, should you want to handle all of the syntactical exceptions in one place we can throw their super class:
+### Traversing an Instance
+The `DecisionGraph` instance is also responsible for handling its own traversal, if we imagine we have an instance of the class, `dg`, that we can use.
+
+#### Initiating Traversal
+Before actually traversing the graph we must declare that we're going to be doing so:
 ```java
-try {
-	dg = new DecisionGraph(f);
-} catch (FileNotFoundException e) {
-	// ...
-} catch (InvalidSyntaxException e) {
-	// ...
-} catch (UnreadableFileException e) {
-	// ...
-} catch (IOException e) {
-	// ...
-}finally {
-	// ...
-}
+dg.initTraversal();
 ```
-## Traversal
-The decision graph object will also handle traversal of the internal graph internally and we can check updates from various methods.
-### Starting Traversal
-Before starting traversal of the graph use:
+
+Or, alternatively if we want to start at a specific node, `String myNode`, we can use:
 ```java
-myDecisionGraph.startTraversing();
+boolean success = dg.initTraversal(myNode);
 ```
-### Decisions
-#### Getting text
+
+If the provided value, `myNode` is a valid node within `dg` then it will return `true` otherwise `false`.
+
+#### Endpoints
+Now during traversal you must keep check of if the current node is an end point or not, as some methods will return `null` values when an end-point is reached. We can check if the current node is an endpoint with:
 ```java
-myDecisionGraph.text();
+boolean isEndpoint = dg.isCurrentEndpoint();
 ```
-returns `String`
-#### Getting possible responses
+
+#### Decisions
+Each node will have a _"decision"_ associated with it _(Note: endpoints do not have decisions they're simply outputs)_ which means there will be a `label` and a list of `responses`. 
+
+##### Getting Current Label
+We can fetch the `String` value of the current node's label by doing:
 ```java
-myDecisionGraph.getResponses()
+String label = dg.getCurrentLabel();
 ```
-returns `ArrayList<String>`
-#### Asserting response
+Note: Will return a `null` value if the graph is not currently traversing.
+
+##### Getting Possible Responses
+We can fetch a `List<String>` value containing all possible responses for our current node by doing:
 ```java
-myDecisionGraph.assertResponse(String response);
+List<String> responses = dg.getCurrentResponses();
 ```
-Note: If the response isn't defined in `myDecisionGraph.getResponses()` then it will throw an exception
-### End points
+Note: Will return a `null` value if the graph is not currently traversing or the current node is an endpoint.
+
+##### Giving a Response
+If you have a value, `String myResponse`, then we can give this response to `dg` like so:
 ```java
-myDecisionGraph.isEndpoint()
+boolean success = dg.giveResponse(myResponse);
 ```
-returns `boolean` of true if current node **is** an end-point
-### Paths
-#### Node text path
+Note: Will return a `boolean` value of `true` if `myResponse` is a valid response, `false` otherwise.
+
+#### Terminating Traversal
+Once you're done traversing `dg` you need to end its traversal:
 ```java
-myDecisionGraph.getTextPath()
+dg.terminateTraversal();
 ```
-returns `ArrayList<String>`
-#### Responses given
-```java
-myDecisionGraph.getResponsePath()
-```
-returns `ArrayList<String>`
-### Ending Traversal
-Once a graph has finished being traversed call:
-```java
-myDecisionGraph.endTraversal();
-```
-Note this will clear both of the paths held by the structure.
+
 ### Example
 A simple program that'll allow the user to traverse their graph is:
 ```java
