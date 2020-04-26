@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+
 class Node {
 
 	private final String ID, text;
@@ -70,9 +71,8 @@ class Node {
 		ArrayList<String> arr = new ArrayList<String>();
 		
 		Iterator<String> itr = this.mappings.keySet().iterator();
-		while(itr.hasNext()) {
+		while(itr.hasNext())
 			arr.add(itr.next());
-		}
 		
 		return arr;
 		

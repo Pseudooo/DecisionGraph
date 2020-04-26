@@ -1,80 +1,89 @@
 package me.Pseudo.DecisionGraph;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
 
 	public static void main(String[] args) {
-		// Execution arguments from cmd line
-		if(args.length == 2) {
+		
+		// traverse <file>
+		if(args.length == 2 || args.length == 3) {
 			
-			if(args[0].equalsIgnoreCase("traverse") || args[0].equalsIgnoreCase("tv")) {
-				
-				DecisionGraph dg = null;
-				try {
-					dg = new DecisionGraph(new File(args[1]));
-				}catch(Exception e) {
-					e.printStackTrace();
-				}
-				
-				traverse(dg);
-				
+			// Check arguments
+			if(!(args[0].equals("tv") || args[0].equals("traverse"))) {
+				System.out.println("Invalid Arguments!");
+				return;
 			}
 			
+			// Attempt to load graph
+			DecisionGraph dg = null;
+			try {
+				dg = DecisionGraph.fromFile(new File(args[1]));
+			}catch(Exception e) {
+				e.printStackTrace();
+				return;
+			}
+			
+			// Assign entry point to be root or user-defined node
+			String entry = args.length == 3 ? args[2] : dg.getRoot();
+			
+			// Attempt to init at start point
+			try {
+				traverse(dg, entry);
+			}catch(Exception e) {
+				System.err.println("Invalid Entry Point!");
+				return;
+			}
+			
+		}else if(args.length == 0) {
+			
+			// TODO: Run repl for building/traversing Decision graph
+			
+		}else {
+			System.out.println("Invalid Arguments!");
 		}
-		// TODO Add system for interactive construction/traversal
+		
 	}
 	
-	// Traverse from console
-	private static void traverse(DecisionGraph dg) {
+	// Function to handle console-traversal of DecisionGraph
+	private static void traverse(DecisionGraph dg, String entrypoint)
+			throws Exception {
 		
-		// Setup for console traversal
+		// Attempt to start trav
+		if(!dg.initTraversal(entrypoint))
+			throw new Exception("Invalid Enty Point!");
+		
+		int step = 0;
+		@SuppressWarnings("resource") // Don't want to close stdin
 		Scanner sc = new Scanner(System.in);
-		dg.startTraversing();
-		
-		// Start traversing graph
-		while(!dg.isEndpoint()) {
+		while(!dg.isCurrentEndpoint()) {
+			step++;
 			
-			// Show text and available responses
-			System.out.println("Text: " + dg.text());
-			ArrayList<String> responses = dg.getResponses();
-			System.out.println("Responses: " + responses.toString());
+			// Display current nodes information
+			System.out.printf(" * * * [%03d]%n", step);
+			System.out.printf("Label: %s%n", dg.getCurrentLabel());
+			System.out.printf("Responses:%n");
+			for(String response : dg.getCurrentResponses())
+				System.out.printf("  - %s%n", response);
 			
-			// Request a choice
 			System.out.print("Choice: ");
-			String res = sc.nextLine();
+			String option = sc.nextLine();
 			
-			// Invalid response?
-			if(!responses.contains(res)) {
-				System.err.println("Invalid");
-				continue; // Skip assertion
+			// giveResponse returns false for any invalid response
+			if(!dg.giveResponse(option)) {
+				step--; // Counter the incoming increase at beginning of loop
+				System.out.println("Invalid Option!");
+				continue; // reset loop
 			}
-			
-			dg.assertResponse(res);
+			System.out.println(""); // Place a break at the end of this block
 			
 		}
 		
-		// End reached
-		System.out.println(dg.text());
-		System.out.println("End reached");
-		System.out.println("This has been your path: ");
-		
-		// Notify user of their path through the graph
-		ArrayList<String> textPath = dg.getTextPath();
-		ArrayList<String> responsePath = dg.getResponsePath();
-		
-		// Output paths
-		for(int i = 0; i < textPath.size(); i++) {
-			
-			System.out.println("Node: " + textPath.get(i));
-			if(i != textPath.size() - 1) { // Text path always +1
-				System.out.println("Response: " + responsePath.get(i));
-			}
-			
-		}
+		System.out.printf(" * * * [%03d] (end)%n", ++step);
+		System.out.printf("Label: %s%n", dg.getCurrentLabel());
 		
 	}
 	
 }
+	
