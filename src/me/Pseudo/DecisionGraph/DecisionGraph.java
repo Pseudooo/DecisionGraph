@@ -6,17 +6,112 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 
 import me.Pseudo.DecisionGraph.Exceptions.InvalidSyntaxException;
 
 public class DecisionGraph {
 	
 	private final HashMap<String, Node> nodes;
-	private String root;
+	private String root = null;
+	
+	// * * * * * * * * * EXTERNAL FUNCTIONS
+	
+	public String cur = null;
+	
+	/**
+	 * Function to determine if the graph is currently undergoing traversal
+	 * @return is traversing
+	 */
+	public boolean isTraversing() {
+		return cur == null;
+	}
+	
+	/**
+	 * Start traversal of the graph at a defined node
+	 * Will not initialize if given node does not exist
+	 * @param startNode node to start at
+	 * @return true if stateNode was valid
+	 */
+	public boolean initTraversal(String startNode) {
+		if(nodes.containsKey(startNode)) {
+			cur = startNode;
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Start traversal of the graph at the root
+	 * Will not initialize if root is not set
+	 */
+	public void initTraversal() {
+		initTraversal(root);
+	}
+	
+	/**
+	 * Determine if the current node is an endpoint to the graph in traversal
+	 * If the graph is not currently traversing will return false
+	 * @return is endpoint
+	 */
+	public boolean isCurrentEndpoint() {
+		return cur == null ? false : nodes.get(cur).isEndpoint();
+	}
+	
+	/**
+	 * Get the label of the current node in traversal
+	 * If the graph is not currently traversing will return null
+	 * @return
+	 */
+	public String getCurrentLabel() {
+		return cur == null ? null : nodes.get(cur).text();
+	}
+	
+	/**
+	 * Get the current responses in traversal
+	 * If the graph is not currently traversing or is at an endpoint will return null
+	 * @return List of responses or null
+	 */
+	public List<String> getCurrentResponses() {
+		return isCurrentEndpoint() ? null : nodes.get(cur).responses();
+	}
+	
+	/**
+	 * Give a response to the current node
+	 * @param response to be given
+	 * @return true if response was valid false otherwise
+	 */
+	public boolean giveResponse(String response) {
+		
+		// Cant respond to non-traversing or endpoint
+		if(isCurrentEndpoint()) return false;
+		
+		// Must be a registered response
+		List<String> l = getCurrentResponses();
+		if(!l.contains(response)) return false;
+		
+		// "shift" node
+		cur = nodes.get(cur).getResponseResult(response);
+		return true; // Success
+		
+	}
+	
+	/**
+	 * Terminate the traversal of a graph
+	 */
+	public void terminateTraversal() {
+		cur = null;
+	}
+	
+	// * * * * * * * * * INTERNAL FUNCTIONS 
 	
 	private DecisionGraph() {
 		this.nodes = new HashMap<String, Node>();
 		this.root = null;
+	}
+	
+	protected String getRoot() {
+		return root;
 	}
 	
 	protected boolean setRoot(String id) {

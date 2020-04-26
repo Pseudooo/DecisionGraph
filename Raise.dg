@@ -187,10 +187,10 @@ asrt hope wait6months No
 asrt wait6months think Ok
 
 def notInterested false Not interested in your case?
-asrt anotherDepart notInterested No
+asrt anotherDepart notInterested Yes
 
 def bin true GET IN THE BIN
-asrt anotherDepart bin No
+asrt notInterested bin No
 
 def intelligent false Does it consider your case to be an intelligent one?
 asrt notInterested intelligent Yes
