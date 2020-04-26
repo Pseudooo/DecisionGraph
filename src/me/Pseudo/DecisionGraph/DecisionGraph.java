@@ -37,6 +37,14 @@ public class DecisionGraph {
 		this.nodes.put(node.ID(), node);
 	}
 	
+	/**
+	 * Method to construct a DecisionGraph given a file containing a dg script
+	 * @param f the file to (attempt) reading from
+	 * @return The DecisionGraph instance
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws InvalidSyntaxException
+	 */
 	public static DecisionGraph fromFile(File f) 
 	throws FileNotFoundException, IOException, InvalidSyntaxException {
 		
