@@ -93,9 +93,11 @@ public class Main {
 		System.out.println("Use :help for help");
 		
 		DecisionGraph dg = new DecisionGraph();
-		
+		@SuppressWarnings("resource")
 		Scanner sc = new Scanner(System.in);
-		loop: while(true) {
+		
+		boolean run = true;
+		while(run) {
 			
 			// Ask for user-input
 			System.out.print("- ");
@@ -108,12 +110,14 @@ public class Main {
 			case ":h":
 				System.out.println(":quit -> Quit");
 				System.out.println(":load -> Load");
+				System.out.println(":enter -> Start traversing graph");
+				System.out.println(":enter [node] -> Start traversing at given node");
 				break;
 			
 			case "quit":
 			case ":q":
 				System.out.println("Bye!");
-				break loop; // Break while-loop
+				run = false; // Break while-loop
 			
 			case ":load":
 			case ":l":
@@ -134,15 +138,39 @@ public class Main {
 			case ":enter":
 			case ":e":
 				
-				// TODO: Write utility to handle "entering" a DecisionGraph
+				// :e on its own will enter at the root
+				String entryNode;
+				if(cmd.length == 1) {
+					// Possible root is unset in repl
+					if((entryNode = dg.getRoot()) == null) {
+						System.out.println("Root node hasn't been declared!");
+						break;
+					}
+						
+				}else if(cmd.length == 2) {
+					// Use user-provided entry node
+					entryNode = cmd[1];
+				}else {
+					System.out.println("Invalid Arguments!");
+					break;
+				}
+				
+				// Attempt to traverse at the provided node
+				// (root should never except)
+				try {
+					traverse(dg, entryNode);
+				}catch(Exception e) {
+					System.err.println("Invalid Entry Point Given!");
+				}
 				
 				break;
 				
 			default:
+				// Any non-repl commands will be executed within the graph
 				try {
 					dg.exec(cmd, -1);
 				} catch (InvalidSyntaxException e) {
-					e.printStackTrace();
+					System.out.println(e.getLocalizedMessage());
 				}
 			}
 			
