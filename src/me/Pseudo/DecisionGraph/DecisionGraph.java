@@ -17,7 +17,7 @@ public class DecisionGraph {
 	
 	// * * * * * * * * * EXTERNAL FUNCTIONS
 	
-	public String cur = null;
+	private String cur = null;
 	
 	/**
 	 * Function to determine if the graph is currently undergoing traversal
