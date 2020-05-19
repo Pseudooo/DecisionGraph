@@ -150,7 +150,7 @@ public class DecisionGraph {
 			
 			// Parse label from cmd arguments
 			StringBuilder lbl_ = new StringBuilder();
-			for(int i = 3; i < cmd.length; i++)
+			for(int i = 2; i < cmd.length; i++)
 				lbl_.append(cmd[i] + (i == cmd.length - 1 ? "" : " "));
 			String label = lbl_.toString();
 			
