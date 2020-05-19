@@ -12,11 +12,17 @@ import me.Pseudo.DecisionGraph.Exceptions.InvalidSyntaxException;
 
 public class DecisionGraph {
 	
+	/*
+	 * Nodes will be stored under a mapping of a StringID defined
+	 * in a definition.
+	 * 	 ID -> Node
+	 */
 	private final HashMap<String, Node> nodes;
-	private String root = null;
+	private String root = null; // Id of root node
 	
 	// * * * * * * * * * EXTERNAL FUNCTIONS
 	
+	// cur will be utilised during traversal of the instance
 	private String cur = null;
 	
 	/**
@@ -29,7 +35,7 @@ public class DecisionGraph {
 	
 	/**
 	 * Start traversal of the graph at a defined node
-	 * Will not initialize if given node does not exist
+	 * Will not initialise if given node does not exist
 	 * @param startNode node to start at
 	 * @return true if stateNode was valid
 	 */
@@ -38,12 +44,12 @@ public class DecisionGraph {
 			cur = startNode;
 			return true;
 		}
-		return false;
+		return false; // Invalid start node given
 	}
 	
 	/**
 	 * Start traversal of the graph at the root
-	 * Will not initialize if root is not set
+	 * Will not initialise if root is not set
 	 */
 	public void initTraversal() {
 		initTraversal(root);
@@ -90,7 +96,7 @@ public class DecisionGraph {
 		List<String> l = getCurrentResponses();
 		if(!l.contains(response)) return false;
 		
-		// "shift" node
+		// Made new node the current
 		cur = nodes.get(cur).getResponseResult(response);
 		return true; // Success
 		
@@ -105,7 +111,9 @@ public class DecisionGraph {
 	
 	// * * * * * * * * * INTERNAL FUNCTIONS 
 	
-	protected DecisionGraph() {
+	// Restrict instantiation from new outside of package forcing users
+	// to use static method provided
+	protected DecisionGraph() { 
 		this.nodes = new HashMap<String, Node>();
 		this.root = null;
 	}
@@ -115,15 +123,17 @@ public class DecisionGraph {
 	}
 	
 	protected boolean setRoot(String id) {
-		boolean s = this.nodes.containsKey(id);
-		if(s) root = id;
-		return s;
+		boolean isValid = this.nodes.containsKey(id);
+		if(isValid) root = id;
+		return isValid;
 	}
 	
 	protected boolean nodeExists(String id) {
 		return this.nodes.containsKey(id);
 	}
 	
+	// Can have a key error but is protected method so
+	// Shouldn't be possible, applies to all methods
 	protected Node getNode(String id) {
 		return this.nodes.get(id);
 	}
@@ -132,6 +142,8 @@ public class DecisionGraph {
 		this.nodes.put(node.ID(), node);
 	}
 	
+	// Function to execute a given statement, single statement allows for
+	// REPL implementation and not just reading file
 	protected void exec(String[] cmd, int lineCount) throws InvalidSyntaxException {
 		
 		switch(cmd[0]) {
