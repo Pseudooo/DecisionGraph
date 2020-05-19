@@ -3,6 +3,8 @@ package me.Pseudo.DecisionGraph;
 import java.io.File;
 import java.util.Scanner;
 
+import me.Pseudo.DecisionGraph.Exceptions.InvalidSyntaxException;
+
 public class Main {
 
 	public static void main(String[] args) {
@@ -38,7 +40,7 @@ public class Main {
 			
 		}else if(args.length == 0) {
 			
-			// TODO: Run repl for building/traversing Decision graph
+			repl();
 			
 		}else {
 			System.out.println("Invalid Arguments!");
@@ -82,6 +84,97 @@ public class Main {
 		
 		System.out.printf(" * * * [%03d] (end)%n", ++step);
 		System.out.printf("Label: %s%n", dg.getCurrentLabel());
+		
+	}
+	
+	private static void repl() {
+		
+		System.out.println("DecisionGraph REPL");
+		System.out.println("Use :help for help");
+		
+		DecisionGraph dg = new DecisionGraph();
+		@SuppressWarnings("resource")
+		Scanner sc = new Scanner(System.in);
+		
+		boolean run = true;
+		while(run) {
+			
+			// Ask for user-input
+			System.out.print("- ");
+			String[] cmd = sc.nextLine().split(" ");
+			
+			// Determine how to handle
+			switch(cmd[0]) {
+			
+			case ":help":
+			case ":h":
+				System.out.println(":quit -> Quit");
+				System.out.println(":load -> Load");
+				System.out.println(":enter -> Start traversing graph");
+				System.out.println(":enter [node] -> Start traversing at given node");
+				break;
+			
+			case "quit":
+			case ":q":
+				System.out.println("Bye!");
+				run = false; // Break while-loop
+			
+			case ":load":
+			case ":l":
+				
+				// :l on its own will unload files 
+				if(cmd.length == 1) {
+					dg = new DecisionGraph();
+				}else {
+					try {
+						dg = DecisionGraph.fromFile(new File(cmd[1]));
+					}catch(Exception e) {
+						e.printStackTrace();
+					}
+				}
+				
+				break;
+			
+			case ":enter":
+			case ":e":
+				
+				// :e on its own will enter at the root
+				String entryNode;
+				if(cmd.length == 1) {
+					// Possible root is unset in repl
+					if((entryNode = dg.getRoot()) == null) {
+						System.out.println("Root node hasn't been declared!");
+						break;
+					}
+						
+				}else if(cmd.length == 2) {
+					// Use user-provided entry node
+					entryNode = cmd[1];
+				}else {
+					System.out.println("Invalid Arguments!");
+					break;
+				}
+				
+				// Attempt to traverse at the provided node
+				// (root should never except)
+				try {
+					traverse(dg, entryNode);
+				}catch(Exception e) {
+					System.err.println("Invalid Entry Point Given!");
+				}
+				
+				break;
+				
+			default:
+				// Any non-repl commands will be executed within the graph
+				try {
+					dg.exec(cmd, -1);
+				} catch (InvalidSyntaxException e) {
+					System.out.println(e.getLocalizedMessage());
+				}
+			}
+			
+		}
 		
 	}
 	
