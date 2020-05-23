@@ -19,29 +19,27 @@ public class Main {
 			}
 			
 			// Attempt to load graph
-			DecisionGraph dg = null;
+			DecisionGraph decisionGraph = null;
 			try {
-				dg = DecisionGraph.fromFile(new File(args[1]));
+				decisionGraph = DecisionGraph.fromFile(new File(args[1]));
 			}catch(Exception e) {
 				e.printStackTrace();
 				return;
 			}
 			
 			// Assign entry point to be root or user-defined node
-			String entry = args.length == 3 ? args[2] : dg.getRoot();
+			String entry = args.length == 3 ? args[2] : decisionGraph.getRoot();
 			
 			// Attempt to init at start point
 			try {
-				traverse(dg, entry);
+				traverse(decisionGraph, entry);
 			}catch(Exception e) {
 				System.err.println("Invalid Entry Point!");
 				return;
 			}
 			
 		}else if(args.length == 0) {
-			
 			repl();
-			
 		}else {
 			System.out.println("Invalid Arguments!");
 		}
@@ -49,31 +47,31 @@ public class Main {
 	}
 	
 	// Function to handle console-traversal of DecisionGraph
-	private static void traverse(DecisionGraph dg, String entrypoint)
+	private static void traverse(DecisionGraph decisionGraph, String entrypoint)
 			throws Exception {
 		
 		// Attempt to start trav
-		if(!dg.initTraversal(entrypoint))
+		if(!decisionGraph.initTraversal(entrypoint))
 			throw new Exception("Invalid Enty Point!");
 		
 		int step = 0;
 		@SuppressWarnings("resource") // Don't want to close stdin
 		Scanner sc = new Scanner(System.in);
-		while(!dg.isCurrentEndpoint()) {
+		while(!decisionGraph.isCurrentEndpoint()) {
 			step++;
 			
 			// Display current nodes information
 			System.out.printf(" * * * [%03d]%n", step);
-			System.out.printf("Label: %s%n", dg.getCurrentLabel());
+			System.out.printf("Label: %s%n", decisionGraph.getCurrentLabel());
 			System.out.printf("Responses:%n");
-			for(String response : dg.getCurrentResponses())
+			for(String response : decisionGraph.getCurrentResponses())
 				System.out.printf("  - %s%n", response);
 			
 			System.out.print("Choice: ");
 			String option = sc.nextLine();
 			
 			// giveResponse returns false for any invalid response
-			if(!dg.giveResponse(option)) {
+			if(!decisionGraph.giveResponse(option)) {
 				step--; // Counter the incoming increase at beginning of loop
 				System.out.println("Invalid Option!");
 				continue; // reset loop
@@ -83,7 +81,7 @@ public class Main {
 		}
 		
 		System.out.printf(" * * * [%03d] (end)%n", ++step);
-		System.out.printf("Label: %s%n", dg.getCurrentLabel());
+		System.out.printf("Label: %s%n", decisionGraph.getCurrentLabel());
 		
 	}
 	
@@ -92,7 +90,7 @@ public class Main {
 		System.out.println("DecisionGraph REPL");
 		System.out.println("Use :help for help");
 		
-		DecisionGraph dg = new DecisionGraph();
+		DecisionGraph decisionGraph = new DecisionGraph();
 		@SuppressWarnings("resource")
 		Scanner sc = new Scanner(System.in);
 		
@@ -124,10 +122,10 @@ public class Main {
 				
 				// :l on its own will unload files 
 				if(cmd.length == 1) {
-					dg = new DecisionGraph();
+					decisionGraph = new DecisionGraph();
 				}else {
 					try {
-						dg = DecisionGraph.fromFile(new File(cmd[1]));
+						decisionGraph = DecisionGraph.fromFile(new File(cmd[1]));
 					}catch(Exception e) {
 						e.printStackTrace();
 					}
@@ -142,7 +140,7 @@ public class Main {
 				String entryNode;
 				if(cmd.length == 1) {
 					// Possible root is unset in repl
-					if((entryNode = dg.getRoot()) == null) {
+					if((entryNode = decisionGraph.getRoot()) == null) {
 						System.out.println("Root node hasn't been declared!");
 						break;
 					}
@@ -158,7 +156,7 @@ public class Main {
 				// Attempt to traverse at the provided node
 				// (root should never except)
 				try {
-					traverse(dg, entryNode);
+					traverse(decisionGraph, entryNode);
 				}catch(Exception e) {
 					System.err.println("Invalid Entry Point Given!");
 				}
@@ -168,7 +166,7 @@ public class Main {
 			default:
 				// Any non-repl commands will be executed within the graph
 				try {
-					dg.exec(cmd, -1);
+					decisionGraph.exec(cmd, -1);
 				} catch (InvalidSyntaxException e) {
 					System.out.println(e.getLocalizedMessage());
 				}

@@ -93,8 +93,8 @@ public class DecisionGraph {
 		if(isCurrentEndpoint()) return false;
 		
 		// Must be a registered response
-		List<String> l = getCurrentResponses();
-		if(!l.contains(response)) return false;
+		List<String> responses = getCurrentResponses();
+		if(!responses.contains(response)) return false;
 		
 		// Made new node the current
 		cur = nodes.get(cur).getResponseResult(response);
