@@ -1,4 +1,4 @@
-package me.Pseudo.DecisionGraph;
+package me.pseudo.decisiongraph;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
-import me.Pseudo.DecisionGraph.Exceptions.InvalidSyntaxException;
+import me.pseudo.decisiongraph.exceptions.InvalidSyntaxException;
 
 public class DecisionGraph {
 	

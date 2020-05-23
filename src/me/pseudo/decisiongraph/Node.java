@@ -1,4 +1,4 @@
-package me.Pseudo.DecisionGraph;
+package me.pseudo.decisiongraph;
 
 import java.util.ArrayList;
 import java.util.HashMap;

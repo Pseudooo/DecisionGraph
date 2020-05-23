@@ -1,9 +1,9 @@
-package me.Pseudo.DecisionGraph;
+package me.pseudo.decisiongraph;
 
 import java.io.File;
 import java.util.Scanner;
 
-import me.Pseudo.DecisionGraph.Exceptions.InvalidSyntaxException;
+import me.pseudo.decisiongraph.exceptions.InvalidSyntaxException;
 
 public class Main {
 
